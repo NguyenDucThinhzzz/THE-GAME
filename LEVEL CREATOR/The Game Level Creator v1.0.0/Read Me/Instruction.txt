@@ -1,0 +1,13 @@
+*****This Current version of LEVER CREATOR is made for v1.x.x of THE GAME*****
+
+I. Basic User Interface
+	1. Main Menu
+	2. Load Menu
+	3. Loading Screen
+	4. Editor
+	5. Pause Menu
+	6. Settings Menu
+	7. Save Menu
+II. Using the Editor
+	1. Block types
+	2. Editor Keys
