@@ -10,11 +10,13 @@
 #define KEY_LEFT 97
 #define KEY_RIGHT 100
 #define KEY_SELECT 13
+#define KEY_PLACE_BLOCK 32
 
-#define MAP_SIZE MAP_SIZE //Add 2 for buffering
+#define MAP_SIZE 302 //Add 2 for buffering
 
-#define APPLICATION_VERSION "1.0.0"
+#define DEFAULT_TP_RESET -100
 
+#define APPLICATION_VERSION "1.0.1"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Engine Helpers
@@ -76,31 +78,46 @@ void SetWindowSize(int x,int y, Window *&_window)
 int WindowSizeChange(Window *_window)
 {
 	int x,y;
-	system("cls");
-	printf("New screen size (51>X,Y>3): ");
-	scanf("%d%d",&x,&y);
-	if(x<4 || x>50 || y<4 || y>50)
+	char ip1[100],ip2[100];
+	while(1)
 	{
-		printf("\nInvalid screen size! Press any key to try again");
-		getch();
-		return WindowSizeChange(_window);
-	}	
-	SetWindowSize(x,y,_window);
+		system("cls");
+		printf("New screen size (51>X,Y>3): ");
+		scanf("%s %s",&ip1,&ip2);
+		x = atoi(ip1);
+		y = atoi(ip2);
+		if(x<3 || x>51 || y<3 || y>51)
+		{
+			printf("\nInvalid screen size! Press any key to try again");
+			getch();
+			continue;
+		}	
+		SetWindowSize(x,y,_window);
+		break;
+	}
+	
 }
 
 int TickRateChange(int &_tickRate)
 {
 	int x;
-	system("cls");
-	printf("New tick rate (501>X>0): ");
-	scanf("%d",&x);
-	if(x<1 || x>500)
+	char ip[100];
+	while(1)
 	{
-		printf("\nInvalid tick rate! Press any key to try again");
-		getch();
-		return TickRateChange(_tickRate);
-	}	
-	_tickRate = x;
+		system("cls");
+		printf("New tick rate (501>X>0): ");
+		scanf("%s",&ip);
+		x = atoi(ip);
+		if(x<1 || x>500)
+		{
+			printf("\nInvalid tick rate! Press any key to try again");
+			getch();
+			continue;
+		}	
+		_tickRate = x;	
+		break;
+	}
+
 }
 
 typedef struct Player
@@ -134,7 +151,6 @@ enum BlockType
 typedef struct Block
 {
 	BlockType _blockType;
-	Vector2 _position;
 	char _icon;
 };
 
@@ -143,94 +159,6 @@ void SwitchBlock(Block &a,Block &b)
 	Block t = a;
 	a = b;
 	b = t;
-}
-
-bool Block_MoveChain(Vector2 *_position,Player *_player,char _code,Block _block[][MAP_SIZE])
-{
-	
-	if(_block[_position->_y][_position->_x]._blockType == Block_Move)
-	{
-		switch(_code)
-		{
-			case 'w':
-			{
-				return Block_MoveChain(new Vector2(_position->_x,(_position->_y)+1),_player,'w',_block);
-			}
-			case 'a':
-			{
-				return Block_MoveChain(new Vector2((_position->_x)-1,_position->_y),_player,'a',_block);
-			}
-			case 's':
-			{
-				return Block_MoveChain(new Vector2(_position->_x,(_position->_y)-1),_player,'s',_block);
-			}
-			case 'd':
-			{
-				return Block_MoveChain(new Vector2((_position->_x)+1,_position->_y),_player,'d',_block);
-			}
-		}
-	}
-	if(_block[_position->_y][_position->_x]._blockType == Block_Ground)
-	{
-		switch(_code)
-		{
-			case 'w':
-			{
-				SwitchBlock(_block[(_player->_position)._y+1][(_player->_position)._x],_block[_position->_y][_position->_x]);
-				break;
-			}
-			case 'a':
-			{
-				SwitchBlock(_block[(_player->_position)._y][(_player->_position)._x-1],_block[_position->_y][_position->_x]);
-				break;
-			}
-			case 's':
-			{
-				SwitchBlock(_block[(_player->_position)._y-1][(_player->_position)._x],_block[_position->_y][_position->_x]);
-				break;			}
-			case 'd':
-			{
-				SwitchBlock(_block[(_player->_position)._y][(_player->_position)._x+1],_block[_position->_y][_position->_x]);
-				break;
-			}
-		}
-		return true;
-	}
-	if(_block[_position->_y][_position->_x]._blockType == Block_Activate && _block[_position->_y][_position->_x]._icon == '+')
-	{
-		switch(_code)
-		{
-			case 'w':
-			{
-				_block[(_player->_position)._y+1][(_player->_position)._x]._icon = ' ';
-				_block[(_player->_position)._y+1][(_player->_position)._x]._blockType = Block_Ground;
-				_block[_position->_y][_position->_x]._icon = 'A';
-				break;
-			}
-			case 'a':
-			{
-				_block[(_player->_position)._y][(_player->_position)._x-1]._icon = ' ';
-				_block[(_player->_position)._y][(_player->_position)._x-1]._blockType = Block_Ground;
-				_block[_position->_y][_position->_x]._icon = 'A';
-				break;
-			}
-			case 's':
-			{
-				_block[(_player->_position)._y-1][(_player->_position)._x]._icon = ' ';
-				_block[(_player->_position)._y-1][(_player->_position)._x]._blockType = Block_Ground;
-				_block[_position->_y][_position->_x]._icon = 'A';
-				break;			}
-			case 'd':
-			{
-				_block[(_player->_position)._y][(_player->_position)._x+1]._icon = ' ';
-				_block[(_player->_position)._y][(_player->_position)._x+1]._blockType = Block_Ground;
-				_block[_position->_y][_position->_x]._icon = 'A';
-				break;
-			}
-		}
-		return true;
-	}
-	return false;
 }
 
 typedef struct TeleportHash
@@ -245,275 +173,348 @@ void NewTPH(Vector2 *_p1,Vector2 *_p2,TeleportHash _tph[],int _index)
 	(_tph[_index])._pos2= _p2;
 }
 
-Vector2 CheckTP(Vector2 *pos,TeleportHash _tph[],int _tpCount)
+void CreateTeleport(TeleportHash &_editTP,TeleportHash _tph[],Player *_editor,int &_tpCount)
 {
-	for(int i=1;i<=_tpCount;i++)
+	if((_editTP._pos1)->_x == DEFAULT_TP_RESET && (_editTP._pos1)->_y == DEFAULT_TP_RESET)
 	{
-	TeleportHash _temp =  _tph[i];
-		if((_temp._pos1)->_x == pos->_x && (_temp._pos1)->_y == pos->_y)
-			return 	*(_temp._pos2);
-		if((_temp._pos2)->_x == pos->_x && (_temp._pos2)->_y == pos->_y)
-			return 	*(_temp._pos1);
+		*(_editTP._pos1) = _editor->_position;
+		return;
 	}
-	return *(new Vector2(0,0));
+	if((_editTP._pos2)->_x == DEFAULT_TP_RESET && (_editTP._pos2)->_y == DEFAULT_TP_RESET)
+	{
+		*(_editTP._pos2) = _editor->_position;
+		_tpCount++;
+		_tph[_tpCount] = _editTP;
+		//Reset TP register
+		_editTP._pos1 = new Vector2(DEFAULT_TP_RESET,DEFAULT_TP_RESET);
+		_editTP._pos2 = new Vector2(DEFAULT_TP_RESET,DEFAULT_TP_RESET);
+		return;
+	}
+}
+
+void SearchAndDestroyTP(Vector2 *pos,Block _block[][MAP_SIZE],TeleportHash _tph[],int &_tpCount)
+{
+	for(int i = 1;i<=_tpCount;i++)
+	{
+		if((_tph[i]._pos1)->_x == pos->_x && (_tph[i]._pos1)->_y == pos->_y || (_tph[i]._pos2)->_x == pos->_x && (_tph[i]._pos2)->_y == pos->_y)
+		{
+			// Set the 2 teleport points 's icon to ground icon
+			_block[(_tph[i]._pos1)->_y][(_tph[i]._pos1)->_x]._icon = ' ';
+			_block[(_tph[i]._pos2)->_y][(_tph[i]._pos2)->_x]._icon = ' ';
+			// Move all of the teleport hashes starting from i one step back
+			for(int j=i;j<_tpCount;j++)
+			{
+				_tph[j] = _tph[j+1];
+			}
+			// Reduce the tp count value by one
+			_tpCount--;
+		}
+	}
+}
+
+void CreateActivationPoint(Vector2 _atvPos[],Player *_editor,int &_atvCount)
+{
+	_atvCount++;
+	_atvPos[_atvCount] = _editor->_position;
+}
+
+void DestroyActivationPoint(Block _block[][MAP_SIZE],Vector2 *pos,Vector2 _atvPos[],int &_atvCount)
+{
+	for(int i=1;i<=_atvCount;i++)
+	{
+		if(_atvPos[i]._x == pos->_x && _atvPos[i]._y == pos->_y)
+		{
+			_block[_atvPos[i]._x][_atvPos[i]._y]._icon = ' ';
+			for(int j=i;j<_atvCount;j++)
+			{
+				_atvPos[j] = _atvPos[j+1];
+			}
+			_atvCount--;
+		}
+	}
+}
+
+//Shape creator
+void DrawLine(char _bIcon,Vector2 *Begin,Vector2 *End,Block _block[][MAP_SIZE])
+{
+	int b_x = Begin->_x;
+	int b_y = Begin->_y;
+	int e_x = End->_x;
+	int e_y = End->_y;
+	if(b_x == e_x)
+	{
+		if(e_y<b_y)
+		{
+			int t = e_y;
+			e_y = b_y;
+			b_y = t;
+		}
+		for(int i=b_y;i<=e_y;i++)
+		{
+			_block[i][b_x]._icon = _bIcon;
+		}
+	}
+	else if(b_y == e_y)
+	{
+		if(e_x<b_x)
+		{
+			int t = e_x;
+			e_x = b_x;
+			b_x = t;
+		}
+		for(int i=b_x;i<=e_x;i++)
+		{
+			_block[b_y][i]._icon = _bIcon;
+		}
+	}
+	else if(abs(b_x-e_x)==abs(b_y-e_y))
+	{
+		if(b_x-e_x==b_y-e_y)
+		{
+			if(b_x>e_x && b_y>e_y)
+			{
+				int t1=b_x,t2=b_y;
+				b_x = e_x;
+				e_x = t1;
+				b_y = e_y;
+				e_y = t2;
+			}
+			for(int i=0;i<=e_x-b_x;i++)
+			{
+				_block[b_y+i][b_x+i]._icon = _bIcon;
+			}
+		}
+		else
+		{
+			if(b_x>e_x && b_y<e_y)
+			{
+				int t1=b_x,t2=b_y;
+				b_x = e_x;
+				e_x = t1;
+				b_y = e_y;
+				e_y = t2;
+			}
+			for(int i=0;i<=e_x-b_x;i++)
+			{
+				_block[b_y-i][b_x+i]._icon = _bIcon;
+			}
+		}
+	}
+	
+}
+void DrawSquare(char _bIcon, int _length,Vector2 *Center,Block _block[][MAP_SIZE])
+{
+	
+	int x = Center->_x;
+	int y = Center->_y;
+	if(x-_length <0 || x+_length>300 || y-_length<0 ||y+_length >300)
+		return;
+	if(_length%2==1)
+	{
+		_length /=2;
+		DrawLine(_bIcon,new Vector2(x-_length,y+_length),new Vector2(x+_length,y+_length),_block);
+		DrawLine(_bIcon,new Vector2(x-_length,y-_length),new Vector2(x+_length,y-_length),_block);
+		DrawLine(_bIcon,new Vector2(x-_length,y+_length),new Vector2(x-_length,y-_length),_block);
+		DrawLine(_bIcon,new Vector2(x+_length,y-_length),new Vector2(x+_length,y+_length),_block);
+	}
+	else
+	{
+		_length /=2;
+		DrawLine(_bIcon,new Vector2(x-_length,y+_length),new Vector2(x+_length-1,y+_length),_block);
+		DrawLine(_bIcon,new Vector2(x-_length,y-_length+1),new Vector2(x+_length-1,y-_length+1),_block);
+		DrawLine(_bIcon,new Vector2(x-_length,y+_length),new Vector2(x-_length,y-_length+1),_block);
+		DrawLine(_bIcon,new Vector2(x+_length-1,y-_length+1),new Vector2(x+_length-1,y+_length),_block);
+	}
+	
+}
+
+void InitializeGame(Block _block[][MAP_SIZE],Player *&_player)
+{
+	_player = new Player(150,150,'P');
+	//Set block Type
+	for(int i=0;i<= MAP_SIZE - 2;i++)
+		for(int j=0;j<= MAP_SIZE - 2;j++)
+		{
+			if(j==(_player->_position)._x && i==(_player->_position)._y)
+			{
+				_block[i][j]._blockType = Block_Ground;
+				continue;
+			}
+			_block[i][j]._blockType = Block_Ground;
+		}
+	//Set icon for Blocks
+	for(int i=0;i<=MAP_SIZE - 2;i++)
+		for(int j=0;j<=MAP_SIZE - 2;j++)
+		{
+			switch(_block[i][j]._blockType)
+			{
+				case Block_Switch:
+					{
+						_block[i][j]._icon='S';
+						break;
+					}
+				case Block_Move:
+					{
+						_block[i][j]._icon='N';
+						break;
+					}
+				case Block_Wall:
+					{
+						_block[i][j]._icon='W';
+						break;
+					}
+				case Block_Ground:
+					{
+						_block[i][j]._icon=' ';
+						break;
+					}
+				case Block_Player:
+					{
+						_block[i][j]._icon=' ';
+						break;
+					}
+			}
+		}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Input Handler
-void Input(bool &A_Quit, GameState &_gameState,Player *&_player,Block _block[][MAP_SIZE],TeleportHash _tph[],int _tpCount, int &currentLevel,char _fileName[],int _atvCount,Vector2 _atvPos[])
+void Input(bool &A_Quit,GameState &_gameState,Player *&_player,Block _block[][MAP_SIZE],int currentLevel,char _fileName[],char &_sIcon,int &_selectNum,Player *&_p,TeleportHash &_editTP,TeleportHash _tph[],int &_tpCount,Vector2 _atvPos[],int &_atvCount)
 {
 	if(kbhit())
 	{
 		switch(getch())
 		{
-			//y+1
 			case KEY_UP:
 				{
-					switch(_block[(_player->_position)._y+1][(_player->_position)._x]._blockType)
-					{
-						case Block_Ground:
-						{
-							(_player->_position)._y++;
-							break;
-						}
-						case Block_Switch:
-						{
-							if(_block[(_player->_position)._y][(_player->_position)._x]._blockType != Block_Teleport)
-							{
-								SwitchBlock(_block[(_player->_position)._y][(_player->_position)._x],_block[(_player->_position)._y+1][(_player->_position)._x]);
-								(_player->_position)._y++;
-							}
-							break;
-						}
-						case Block_Move:
-						{
-							if(Block_MoveChain(new Vector2((_player->_position)._x,(_player->_position)._y+2),_player,'w',_block))
-							{
-								(_player->_position)._y++;
-							}
-							break;
-						}
-						case Block_Wall:
-						{
-							break;
-						}
-						case Block_Activate:
-						{
-							break;
-						}
-						case Block_Teleport:
-						{
-							_player->_position = CheckTP(new Vector2((_player->_position)._x,(_player->_position)._y+1),_tph,_tpCount);
-							break;
-						}
-						case Block_Win:
-						{
-							bool _winAble = true;
-							for(int i=1;i<=_atvCount;i++)
-							{
-								if(_block[_atvPos[i]._y][_atvPos[i]._x]._icon == '+')
-								{
-									_winAble = false;
-									break;
-								}
-							}
-							if(_winAble)
-							{
-								currentLevel++;
-								sprintf(_fileName,"Level File/Level%d.txt",currentLevel);
-								_gameState = Loading;
-							}
-							break;
-						}
-					}
+					if((_player->_position)._y+1< MAP_SIZE-2)
+						(_player->_position)._y++;
 					break;
 				}
-			//y-1
 			case KEY_DOWN:
 				{
-					switch(_block[(_player->_position)._y-1][(_player->_position)._x]._blockType)
-					{
-						case Block_Ground:
-						{
-							(_player->_position)._y--;
-							break;
-						}
-						case Block_Switch:
-						{
-							if(_block[(_player->_position)._y][(_player->_position)._x]._blockType != Block_Teleport)
-							{
-								SwitchBlock(_block[(_player->_position)._y][(_player->_position)._x],_block[(_player->_position)._y-1][(_player->_position)._x]);
-								(_player->_position)._y--;
-							}
-							break;
-						}
-						case Block_Move:
-						{
-							if(Block_MoveChain(new Vector2((_player->_position)._x,(_player->_position)._y-2),_player,'s',_block))
-							{
-								(_player->_position)._y--;
-							}
-							break;
-						}
-						case Block_Wall:
-						{
-							break;
-						}
-						case Block_Activate:
-						{
-							break;
-						}
-						case Block_Teleport:
-						{
-							_player->_position = CheckTP(new Vector2((_player->_position)._x,(_player->_position)._y-1),_tph,_tpCount);
-							break;
-						}
-						case Block_Win:
-						{
-							bool _winAble = true;
-							for(int i=1;i<=_atvCount;i++)
-							{
-								if(_block[_atvPos[i]._y][_atvPos[i]._x]._icon == '+')
-								{
-									_winAble = false;
-									break;
-								}
-							}
-							if(_winAble)
-							{
-								currentLevel++;
-								sprintf(_fileName,"Level File/Level%d.txt",currentLevel);
-								_gameState = Loading;
-							}
-							break;
-						}
-					}
+					if((_player->_position)._y-1>0)
+						(_player->_position)._y--;
 					break;
 				}
-			//x-1
 			case KEY_LEFT:
 				{
-					switch(_block[(_player->_position)._y][(_player->_position)._x-1]._blockType)
+					if((_player->_position)._x-1>0)
+						(_player->_position)._x--;
+					break;
+				}
+			case KEY_RIGHT:
+				{
+					if((_player->_position)._x+1< MAP_SIZE-2)
+						(_player->_position)._x++;
+					break;
+				}
+			case '1':
+				{
+					_sIcon = ' ';
+					_selectNum=1;
+					break;
+				}
+			case '2':
+				{
+					_sIcon = 'W';
+					_selectNum=2;
+					break;
+				}
+			case '3':
+				{
+					_sIcon = 'N';
+					_selectNum=3;
+					break;
+				}
+			case '4':
+				{
+					_sIcon = 'S';
+					_selectNum=4;
+					break;
+				}
+			case '5':
+				{
+					_sIcon = 'T';
+					_selectNum=5;
+					break;
+				}
+			case '6':
+				{
+					_sIcon = '*';
+					_selectNum=6;
+					break;
+				}
+			case '7':
+				{
+					_sIcon = 'P';
+					_selectNum=7;
+					break;
+				}
+			case '8':
+				{
+					_sIcon = '+';
+					_selectNum=8;
+					break;
+				}
+			case 'u':
+				{
+					while(1)
 					{
-						case Block_Ground:
-						{
-							(_player->_position)._x--;
+						int _length=0;
+						char ip[100];
+						system("cls");
+						printf("Input the square's side length(x > 1 and x = -1 to cancel): ");
+						scanf("%s",&ip);
+						_length = atoi(ip);
+						if(_length==-1)
 							break;
-						}
-						case Block_Switch:
+						if(_length<=1)
 						{
-							if(_block[(_player->_position)._y][(_player->_position)._x]._blockType != Block_Teleport)
-							{
-								SwitchBlock(_block[(_player->_position)._y][(_player->_position)._x],_block[(_player->_position)._y][(_player->_position)._x-1]);
-								(_player->_position)._x--;
-							}
-							break;
+							printf("Invalid value, press any key to try again!");
+							getch();
+							continue;
 						}
-						case Block_Move:
-						{
-							if(Block_MoveChain(new Vector2((_player->_position)._x-2,(_player->_position)._y),_player,'a',_block))
-							{
-								(_player->_position)._x--;
-							}
-							break;
-						}
-						case Block_Wall:
-						{
-							break;
-						}
-						case Block_Activate:
-						{
-							break;
-						}
-						case Block_Teleport:
-						{
-							_player->_position = CheckTP(new Vector2((_player->_position)._x-1,(_player->_position)._y),_tph,_tpCount);
-							break;
-						}
-						case Block_Win:
-						{
-							bool _winAble = true;
-							for(int i=1;i<=_atvCount;i++)
-							{
-								if(_block[_atvPos[i]._y][_atvPos[i]._x]._icon == '+')
-								{
-									_winAble = false;
-									break;
-								}
-							}
-							if(_winAble)
-							{
-								currentLevel++;
-								sprintf(_fileName,"Level File/Level%d.txt",currentLevel);
-								_gameState = Loading;
-							}
-							break;
-						}
+						DrawSquare(_sIcon,_length,&(_player->_position),_block);
+						break;
 					}
 					break;
 				}
-			//x+1
-			case KEY_RIGHT:
-				{
-					switch(_block[(_player->_position)._y][(_player->_position)._x+1]._blockType)
+			case KEY_PLACE_BLOCK:
+				{	
+					if(_block[(_player->_position)._y][(_player->_position)._x]._icon == '+')
 					{
-						case Block_Ground:
+						DestroyActivationPoint(_block,&(_player->_position),_atvPos,_atvCount);
+					}
+					if(_block[(_player->_position)._y][(_player->_position)._x]._icon == 'T')
+					{
+						SearchAndDestroyTP(&(_player->_position),_block,_tph,_tpCount);
+					}
+					if(_sIcon =='P')
+					{
+						if(_p==NULL)
 						{
-							(_player->_position)._x++;
-							break;
+							_p = new Player((_player->_position)._x,(_player->_position)._y,'P');
 						}
-						case Block_Switch:
+						else
 						{
-							if(_block[(_player->_position)._y][(_player->_position)._x]._blockType != Block_Teleport)
-							{
-								SwitchBlock(_block[(_player->_position)._y][(_player->_position)._x],_block[(_player->_position)._y][(_player->_position)._x+1]);
-								(_player->_position)._x++;
-							}
-								
-							break;
-						}
-						case Block_Move:
-						{
-							if(Block_MoveChain(new Vector2((_player->_position)._x+2,(_player->_position)._y),_player,'d',_block))
-							{
-								(_player->_position)._x++;
-							}
-							break;
-						}
-						case Block_Wall:
-						{
-							break;
-						}
-						case Block_Activate:
-						{
-							break;
-						}
-						case Block_Teleport:
-						{
-							_player->_position = CheckTP(new Vector2((_player->_position)._x+1,(_player->_position)._y),_tph,_tpCount);
-							break;
-						}
-						case Block_Win:
-						{
-							bool _winAble = true;
-							for(int i=1;i<=_atvCount;i++)
-							{
-								if(_block[_atvPos[i]._y][_atvPos[i]._x]._icon == '+')
-								{
-									_winAble = false;
-									break;
-								}
-							}
-							if(_winAble)
-							{
-								currentLevel++;
-								sprintf(_fileName,"Level File/Level%d.txt",currentLevel);
-								_gameState = Loading;
-							}
-							break;
+							_block[(_p->_position)._y][(_p->_position)._x]._icon = ' ';
+							(_p->_position)._x = (_player->_position)._x;
+							(_p->_position)._y = (_player->_position)._y;
+							
 						}
 					}
+					if(_sIcon == 'T')
+					{
+						CreateTeleport(_editTP,_tph,_player,_tpCount);
+					}
+					if(_sIcon == '+')
+					{
+						CreateActivationPoint(_atvPos,_player,_atvCount);
+					}
+
+					_block[(_player->_position)._y][(_player->_position)._x]._icon = _sIcon;
 					break;
 				}
 			case ESC:
@@ -537,9 +538,10 @@ void HideCursor()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Data Handling
-void LoadGame(char _fileName[50],FILE *_fptr,Player *&_player,Block _blockArr[][MAP_SIZE],TeleportHash _tph[],int &_tpCount ,int &currentLevel,bool &_gameSaved,char _saveName[],int &_atvCount, Vector2 _atvPos[])
+void LoadGame(char _fileName[50],FILE *_fptr,Player *&_player,Block _blockArr[][MAP_SIZE],TeleportHash _tph[],int &_tpCount ,int &currentLevel,bool &_gameSaved,char _saveName[],int &_atvCount, Vector2 _atvPos[],Player *&_p)
 {
 	//Reset map properties
+	_p = NULL;
 	_atvCount = 0;
 	_tpCount = 0;
 	_fptr = fopen(_fileName,"r+");
@@ -547,13 +549,14 @@ void LoadGame(char _fileName[50],FILE *_fptr,Player *&_player,Block _blockArr[][
 	if(strstr(_fileName,"Level")==NULL)
 	{
 		fgets(_saveName,30,_fptr);
+		_saveName[strlen(_saveName)-1]='\0';
 	}
 	fscanf(_fptr,"%d",&currentLevel);
-	getc(_fptr);
+	fgetc(_fptr);
 	//Read map
-	for(int i = 300;i>=0;i--)
+	for(int i = MAP_SIZE - 2;i>=0;i--)
 	{
-		for(int j = 0;j<=300;j++)
+		for(int j = 0;j<=MAP_SIZE - 2;j++)
 		{
 			_blockArr[i][j]._icon = getc(_fptr);
 			switch(_blockArr[i][j]._icon)
@@ -598,6 +601,20 @@ void LoadGame(char _fileName[50],FILE *_fptr,Player *&_player,Block _blockArr[][
 					_blockArr[i][j]._blockType =  Block_Win;
 					break;				
 				}
+				case 'P':
+				{
+					_p = new Player(j,i,'P');
+					_blockArr[i][j]._icon = 'P';
+					_blockArr[i][j]._blockType =  Block_Player;
+					break;
+				}
+				case 'o':
+				{
+					_player = new Player(j,i,'o');
+					_blockArr[i][j]._icon = ' ';
+					_blockArr[i][j]._blockType =  Block_Ground;
+					break;
+				}
 				default:
 				{
 					_blockArr[i][j]._icon = ' ';
@@ -606,12 +623,19 @@ void LoadGame(char _fileName[50],FILE *_fptr,Player *&_player,Block _blockArr[][
 				}
 			}
 		}
-		getc(_fptr);
+		fgetc(_fptr);
 	}
+	//Read Editor pos
+	int player_x,player_y;
+	fscanf(_fptr,"%d %d",&player_x,&player_y);
+	_player = new Player(player_x,player_y,'o');
 	//Read Player pos
 	int p_x,p_y;
 	fscanf(_fptr,"%d %d",&p_x,&p_y);
-	_player = new Player(p_x,p_y,'P');
+	if(p_x!=-1 &&p_y !=-1)
+	{
+		_p = new Player(p_x,p_y,'P');
+	}
 	//Read Teleport points
 	int _x1,_y1,_x2,_y2;
 	fscanf(_fptr,"%d",&_tpCount);
@@ -641,23 +665,41 @@ void LoadSettings(int &_tickRate,Window *_window)
 	fclose(_fptr);
 }
 
-void SaveGame(Block _blockArr[][MAP_SIZE],FILE *_fptr,char _fileName[50],int _currentLevel,int _tpCount, TeleportHash _tph[],Player *_player,bool &_gameSaved,char _saveName[],int _atvCount,Vector2 _atvPos[])
+void SaveGame(Block _blockArr[][MAP_SIZE],FILE *_fptr,char _fileName[50],int _currentLevel,int _tpCount, TeleportHash _tph[],Player *_player,bool &_gameSaved,char _saveName[],int _atvCount,Vector2 _atvPos[],bool _createMap,Player *_p,TeleportHash &_editTP)
 {
+	//Editor clearing
+	if((_editTP._pos1)->_x != DEFAULT_TP_RESET && (_editTP._pos1)->_y != DEFAULT_TP_RESET)
+	{
+		// Set block icon to ground if there is only pos1
+		_blockArr[(_editTP._pos1)->_y][(_editTP._pos1)->_x]._icon = ' ';
+		(_editTP._pos1)->_x = DEFAULT_TP_RESET;
+		(_editTP._pos1)->_y = DEFAULT_TP_RESET;
+	}
 	_fptr = fopen(_fileName,"w");
 	//Save name and level
-	fprintf(_fptr,"%s\n",_saveName);
+	if(!_createMap)
+		fprintf(_fptr,"%s\n",_saveName);
 	fprintf(_fptr,"%d\n",_currentLevel);
 	//Print map
-	for(int i = 300;i>=0;i--)
+	for(int i = MAP_SIZE - 2;i>=0;i--)
 	{
-		for(int j = 0;j<=300;j++)
+		for(int j = 0;j<=MAP_SIZE - 2;j++)
 		{
+			if(_blockArr[i][j]._icon == 'P' && _createMap)
+				fprintf(_fptr," ");
+			else
 			fprintf(_fptr,"%c",_blockArr[i][j]._icon);
 		}
 		fprintf(_fptr,"\n");
 	}
+	//Editor Pointing position
+	if(!_createMap)
+		fprintf(_fptr,"%d %d\n",(_player->_position)._x,(_player->_position)._y);
 	//Player position
-	fprintf(_fptr,"%d %d\n",(_player->_position)._x,(_player->_position)._y);
+	if(_p != NULL)
+		fprintf(_fptr,"%d %d\n",(_p->_position)._x,(_p->_position)._y);
+	else
+		fprintf(_fptr,"-1 -1\n");
 	//Teleport save
 	fprintf(_fptr,"%d\n",_tpCount);
 	for(int i = 1;i<=_tpCount;i++)
@@ -670,7 +712,6 @@ void SaveGame(Block _blockArr[][MAP_SIZE],FILE *_fptr,char _fileName[50],int _cu
 	{
 		fprintf(_fptr,"%d %d\n",_atvPos[i]._x,_atvPos[i]._y);
 	}
-	
 	_gameSaved = true;
 	fclose(_fptr);
 }
@@ -685,7 +726,7 @@ void SaveSettings(int _tickRate,Window *_window)
 	fclose(_f);
 }
 
-void SaveProgress(int _index,Block _blockArr[][MAP_SIZE],FILE *_fptr,char _fileName[50],int _currentLevel,int _tpCount, TeleportHash _tph[],Player *_player,bool &_gameSaved,char _saveName[],SavedFile _fileProperties[],int currentLevel,char _strArr [][50],int _atvCount,Vector2 _atvPos[])
+void SaveProgress(int _index,Block _blockArr[][MAP_SIZE],FILE *_fptr,char _fileName[50],int _currentLevel,int _tpCount, TeleportHash _tph[],Player *_player,bool &_gameSaved,char _saveName[],SavedFile _fileProperties[],int currentLevel,char _strArr [][50],int _atvCount,Vector2 _atvPos[],Player *_p,TeleportHash &_editTP)
 {
 	if(!strcmpi(_saveName,"-None-"))
 	{
@@ -708,7 +749,7 @@ void SaveProgress(int _index,Block _blockArr[][MAP_SIZE],FILE *_fptr,char _fileN
 			strcpy(_fileProperties[_index]._name,_saveName);
 			_fileProperties[_index]._currentLevel = currentLevel;
 			sprintf(_fileName,"Save File/Save%d.txt",_index+1);
-			SaveGame(_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_saveName,_atvCount,_atvPos);
+			SaveGame(_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_saveName,_atvCount,_atvPos,false,_p,_editTP);
 			break;
 		}
 	}
@@ -717,7 +758,7 @@ void SaveProgress(int _index,Block _blockArr[][MAP_SIZE],FILE *_fptr,char _fileN
 		strcpy(_fileProperties[_index]._name,_saveName);
 		_fileProperties[_index]._currentLevel = currentLevel;
 		sprintf(_fileName,"Save File/Save%d.txt",_index+1);
-		SaveGame(_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_saveName,_atvCount,_atvPos);
+		SaveGame(_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_saveName,_atvCount,_atvPos,false,_p,_editTP);
 	}
 	//Display the changed save
 	strcpy(_strArr[_index],"");
@@ -736,13 +777,14 @@ void SaveProgress(int _index,Block _blockArr[][MAP_SIZE],FILE *_fptr,char _fileN
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Game State UI
-void MainMenuUI(GameState &_gameState,bool &A_quit,char _fileName[50],SavedFile _fileProperties[],char _saveName[])
+
+void MainMenuUI(GameState &_gameState,bool &A_quit,char _fileName[50],SavedFile _fileProperties[],char _saveName[],Block _block[][MAP_SIZE],Player *&_player,int &_currentLevel,int &_tpCount,int &_atvCount)
 {
 	int maxNum = 2;
 	int currentNum = 0;
 	char _nameArr[maxNum+2][50];
-	strcpy(_nameArr[0],"New Game");
-	strcpy(_nameArr[1],"Load Game");
+	strcpy(_nameArr[0],"New Map");
+	strcpy(_nameArr[1],"Load Map");
 	strcpy(_nameArr[2],"Quit");
 	do
 	{
@@ -754,8 +796,8 @@ void MainMenuUI(GameState &_gameState,bool &A_quit,char _fileName[50],SavedFile 
 		printf("	    ||     	||======||	||======	||  ======	||       ||	||   \\/   ||	||======\n");
 		printf("	    ||     	||      ||	||      	||      ||	||=======||	||        ||	||      \n");
 		printf("	    ||     	||      ||	||      	||      ||	||       ||	||        ||	||      \n");
-		printf("	    ||     	||      ||	========	==========	||       ||	||        ||	========\n\n");
-		printf("                                                    v%s                                         \n",APPLICATION_VERSION);
+		printf("	    ||     	||      ||	========	==========	||       ||	||        ||	========\n");
+		printf("\n                                             MAP CREATOR v%s                                    \n",APPLICATION_VERSION);
 		printf("\n\n");
 		for(int i = 0;i<=maxNum;i++)
 		{
@@ -790,8 +832,13 @@ void MainMenuUI(GameState &_gameState,bool &A_quit,char _fileName[50],SavedFile 
 						case 0:
 							{
 								strcpy(_saveName,"-None-");
-								_gameState = Loading;
-								strcpy(_fileName,"Level File/Level1.txt");
+								InitializeGame(_block,_player);
+								//Reset Game values
+								_atvCount = 0;
+								_tpCount = 0;
+								_currentLevel = 1;
+								_gameState = Game;
+								strcpy(_fileName,"Template File/BlankLevel.txt");
 								break;
 							}
 						case 1:
@@ -818,8 +865,8 @@ void MainMenuUI(GameState &_gameState,bool &A_quit,char _fileName[50],SavedFile 
 								do
 								{
 									system("cls");
-									printf("      ================= LOAD GAME =================\n");
-									printf("      ||       Name         ||   Current Level   ||\n");
+									printf("      ================== LOAD MAP ==================\n");
+									printf("      ||       Name         ||        Level       ||\n");
 									for(int i=0;i<=5;i++)
 										{
 											if(i==5)
@@ -925,14 +972,14 @@ void MainMenuUI(GameState &_gameState,bool &A_quit,char _fileName[50],SavedFile 
 	}while(_gameState==MainMenu);
 }
 
-void PauseMenuUI(GameState &_gameState,bool &A_Quit,Block _blockArr[][MAP_SIZE],FILE *_fptr,char _fileName[], int &currentLevel,int &_tpCount,TeleportHash _tph[],Player *_player,bool _gameSaved,SavedFile _fileProperties[],char _saveName[],int _atvCount,Vector2 _atvPos[])
+void PauseMenuUI(GameState &_gameState,bool &A_Quit,Block _blockArr[][MAP_SIZE],FILE *_fptr,char _fileName[], int &currentLevel,int &_tpCount,TeleportHash _tph[],Player *_player,bool _gameSaved,SavedFile _fileProperties[],char _saveName[],int _atvCount,Vector2 _atvPos[],Player *_p,TeleportHash &_editTP)
 {
 	int maxNum = 4;
 	int currentNum = 0;
 	char _nameArr[maxNum+2][50];
 	strcpy(_nameArr[0],"Resume");
-	strcpy(_nameArr[1],"Restart Level");
-	strcpy(_nameArr[2],"Save Game");
+	strcpy(_nameArr[1],"Create Map");
+	strcpy(_nameArr[2],"Save Map");
 	strcpy(_nameArr[3],"Settings");
 	strcpy(_nameArr[4],"Main Menu");
 
@@ -978,30 +1025,33 @@ void PauseMenuUI(GameState &_gameState,bool &A_Quit,Block _blockArr[][MAP_SIZE],
 							}
 						case 1:
 							{
-								//Restart Level
-								sprintf(_fileName,"Level File/Level%d.txt",currentLevel);
-								_gameState = Loading;
+								int _temp = 0;
+								char ip[100];
+								char _holder[50];
+								while(1)
+								{
+									system("cls");
+									printf("Enter Map Level (x>1,\"cancel\" to exit): ");
+									scanf("%s",&ip);
+									if(!strcmp(ip,"cancel"))
+										break;
+									_temp = atoi(ip);
+									if(_temp<1)
+									{
+										printf("\nInvalid Value!");
+										getch();
+										continue;
+									}
+									sprintf(_holder,"Map File/Level%d.txt",_temp);
+									SaveGame(_blockArr,_fptr,_holder,_temp,_tpCount,_tph,_player,_gameSaved,_saveName,_atvCount,_atvPos,true,_p,_editTP);
+									fclose(_fptr);
+									break;
+								}
 								break;
 							}
 						case 2:
 							{
-//								// if the file from the loading contains the keyword "Level" then we save the game to a new file else save with the current file name
-//								if(strstr(_fileName,"Level") != NULL)
-//								{
-//									int _fileCounter = 0;
-//									do
-//									{
-//										_fileCounter++;
-//										sprintf(_fileName,"Save%d.txt",_fileCounter);
-//										_fptr = fopen(_fileName,"r");
-//									}while(_fptr != NULL);
-//									//Save Game Menu
-//									SaveGame(_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved);
-//								}
-//								else
-//								{
-//									SaveGame(_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved);
-//								}
+//								
 								//Save Game screen
 								bool _localExit = false;
 								int currentIndex = 0;
@@ -1024,8 +1074,8 @@ void PauseMenuUI(GameState &_gameState,bool &A_Quit,Block _blockArr[][MAP_SIZE],
 								do
 								{
 									system("cls");
-									printf("      ================= SAVE GAME =================\n");
-									printf("      ||       Name         ||   Current Level   ||\n");
+									printf("      ================== SAVE MAP ==================\n");
+									printf("      ||       Name         ||        Level       ||\n");
 									for(int i=0;i<=5;i++)
 										{
 											if(i==5)
@@ -1060,27 +1110,27 @@ void PauseMenuUI(GameState &_gameState,bool &A_Quit,Block _blockArr[][MAP_SIZE],
 													{
 														case 0:
 															{
-																SaveProgress(0,_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_saveName,_fileProperties,currentLevel,_strArr,_atvCount,_atvPos);
+																SaveProgress(0,_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_saveName,_fileProperties,currentLevel,_strArr,_atvCount,_atvPos,_p,_editTP);
 																break;
 															}
 														case 1:
 															{
-																SaveProgress(1,_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_saveName,_fileProperties,currentLevel,_strArr,_atvCount,_atvPos);
+																SaveProgress(1,_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_saveName,_fileProperties,currentLevel,_strArr,_atvCount,_atvPos,_p,_editTP);
 																break;
 															}
 														case 2:
 															{
-																SaveProgress(2,_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_saveName,_fileProperties,currentLevel,_strArr,_atvCount,_atvPos);
+																SaveProgress(2,_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_saveName,_fileProperties,currentLevel,_strArr,_atvCount,_atvPos,_p,_editTP);
 																break;
 															}
 														case 3:
 															{
-																SaveProgress(3,_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_saveName,_fileProperties,currentLevel,_strArr,_atvCount,_atvPos);
+																SaveProgress(3,_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_saveName,_fileProperties,currentLevel,_strArr,_atvCount,_atvPos,_p,_editTP);
 																break;
 															}
 														case 4:
 															{
-																SaveProgress(4,_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_saveName,_fileProperties,currentLevel,_strArr,_atvCount,_atvPos);
+																SaveProgress(4,_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_saveName,_fileProperties,currentLevel,_strArr,_atvCount,_atvPos,_p,_editTP);
 																break;
 															}
 														case 5:
@@ -1262,7 +1312,7 @@ void SettingsUI(GameState &_gameState,int &_tickRate,Window *_window)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //This is where we draw our game
 
-void DrawGame(Window *_window,Block _block[][MAP_SIZE],Player *_player,int currentLevel,/*Debug*/TeleportHash _tph[],int _tpCount,Vector2 _atvPos[],int _atvCount)
+void DrawGame(Window *_window,Block _block[][MAP_SIZE],Player *_player,int currentLevel,/*Debug*/TeleportHash _tph[],int _tpCount,Vector2 _atvPos[],int _atvCount,int _selectNum,Player *_p)
 {
 	system("cls");
 	//Game Window
@@ -1293,7 +1343,7 @@ void DrawGame(Window *_window,Block _block[][MAP_SIZE],Player *_player,int curre
 					//Draw Game Here
 					if((j-(_window->_halfHeight)==1)&&(i-(_window->_halfWidth) ==1))
 					{
-						printf("P");
+						printf("o");
 						continue;
 					}
 					printf("%c",_block[j+((_player->_position)._y)-(_window->_halfHeight)-1][i+((_player->_position)._x)-(_window->_halfWidth)-1]._icon);
@@ -1303,12 +1353,29 @@ void DrawGame(Window *_window,Block _block[][MAP_SIZE],Player *_player,int curre
 	}
 	//Debug
 	printf("\n Position: X %d, Y %d",(_player->_position)._x,(_player->_position)._y);
-	printf("\n Current level: %d", currentLevel);
-	printf("\n %d,g%c %cg",_atvCount,_block[6][5]._icon,_block[49][45]._icon);
-}
-void Logic()
-{
 	
+	// Editor UI
+	char a[20][100];
+	strcpy(a[1],"1.Ground Block");
+	strcpy(a[2],"2.Wall Block");
+	strcpy(a[3],"3.Chain Block\n");
+	strcpy(a[4],"4.Switch Block");
+	strcpy(a[5],"5.Teleport Block");
+	strcpy(a[6],"6.Win Block\n");
+	strcpy(a[7],"7.Player Block");
+	strcpy(a[8],"8.Activate Block");
+	printf("\n Block:\n");
+	for(int i=1;i<= 8;i++)
+	{
+		if(i==_selectNum)
+		{
+			printf(" -->");
+		}
+		else
+			printf("    ");
+		printf("%s",a[i]);
+	}
+	printf("\n%d",_tpCount);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1327,6 +1394,7 @@ int main()
 	GameState _gameState = MainMenu;
 	static Window *_window = new Window(20,7);
 	Player *_player;
+	Player *_p = NULL;
 
 	//Game Data
 	Block _blockArr[MAP_SIZE][MAP_SIZE];
@@ -1335,6 +1403,15 @@ int main()
 	int _atvCount = 0;
 	int _tpCount = 0;
 	int currentLevel = 0;
+	
+	//Editor properties
+	TeleportHash _editTP;
+	//Choose random number that can't be access in game so that we can store the default value in the x and y axis for comparison to see if _editTP has been modified or not
+	_editTP._pos1 = new Vector2(DEFAULT_TP_RESET,DEFAULT_TP_RESET);
+	_editTP._pos2 = new Vector2(DEFAULT_TP_RESET,DEFAULT_TP_RESET);
+	
+	char _selectedIcon = ' ';
+	int _selectNum = 1;
 	
 	//Save Game properties for displaying saved files
 	bool _gameSaved = false;
@@ -1367,7 +1444,7 @@ int main()
 		{
 			case MainMenu:
 			{
-				MainMenuUI(_gameState,A_Quit,_fileName,_fileProperties,_saveName);
+				MainMenuUI(_gameState,A_Quit,_fileName,_fileProperties,_saveName,_blockArr,_player,currentLevel,_tpCount,_atvCount);
 				break;
 			}
 			case Loading:
@@ -1377,7 +1454,7 @@ int main()
 				LoadSettings(_tickRate,_window);
 				printf("/////////////");
 				Sleep(300);
-				LoadGame(_fileName,_fptr,_player,_blockArr,_tph,_tpCount, currentLevel,_gameSaved,_saveName,_atvCount,_atvPos);
+				LoadGame(_fileName,_fptr,_player,_blockArr,_tph,_tpCount, currentLevel,_gameSaved,_saveName,_atvCount,_atvPos,_p);
 				printf("/////////////");
 				Sleep(300);
 				_gameState = Game;
@@ -1387,9 +1464,8 @@ int main()
 			{
 				do
 				{
-					Input(A_Quit,_gameState,_player,_blockArr,_tph,_tpCount,currentLevel,_fileName,_atvCount,_atvPos);
-					Logic();
-					DrawGame(_window,_blockArr,_player,currentLevel,_tph,_tpCount,_atvPos,_atvCount);
+					Input(A_Quit,_gameState,_player,_blockArr,currentLevel,_fileName,_selectedIcon,_selectNum,_p,_editTP,_tph,_tpCount,_atvPos,_atvCount);
+					DrawGame(_window,_blockArr,_player,currentLevel,_tph,_tpCount,_atvPos,_atvCount,_selectNum,_p);
 					//UpdateDelay
 					Sleep(_tickRate);
 				}while(_gameState==Game);
@@ -1403,7 +1479,7 @@ int main()
 			}
 			case PauseMenu:
 			{
-				PauseMenuUI(_gameState,A_Quit,_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_fileProperties,_saveName,_atvCount,_atvPos);
+				PauseMenuUI(_gameState,A_Quit,_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved,_fileProperties,_saveName,_atvCount,_atvPos,_p,_editTP);
 				break;
 			}
 		}

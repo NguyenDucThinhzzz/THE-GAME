@@ -1,0 +1,9 @@
+- 12/06/2022 Version 1.0.0:
+	+ Basic Game finished
+- 28/06/2022 Version 1.0.1:
+	+ Defined key Map_Size
+	+ Added 6 Levels
+	+ Deleted Unnecessary lines
+	+ Added Winning Screen
+	+ Removed recursion when input in new values when setting Tick Rate , Window Size
+	

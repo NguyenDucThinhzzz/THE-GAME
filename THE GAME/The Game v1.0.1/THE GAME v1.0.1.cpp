@@ -11,9 +11,9 @@
 #define KEY_RIGHT 100
 #define KEY_SELECT 13
 
-#define MAP_SIZE MAP_SIZE //Add 2 for buffering
+#define MAP_SIZE 302 //Add 2 for buffering
 
-#define APPLICATION_VERSION "1.0.0"
+#define APPLICATION_VERSION "1.0.1"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -24,6 +24,7 @@ enum GameState
 	MainMenu,
 	Loading,
 	Game,
+	Won,
 	PauseMenu,
 	Settings,
 	Quit,	
@@ -76,31 +77,46 @@ void SetWindowSize(int x,int y, Window *&_window)
 int WindowSizeChange(Window *_window)
 {
 	int x,y;
-	system("cls");
-	printf("New screen size (51>X,Y>3): ");
-	scanf("%d%d",&x,&y);
-	if(x<4 || x>50 || y<4 || y>50)
+	char ip1[100],ip2[100];
+	while(1)
 	{
-		printf("\nInvalid screen size! Press any key to try again");
-		getch();
-		return WindowSizeChange(_window);
-	}	
-	SetWindowSize(x,y,_window);
+		system("cls");
+		printf("New screen size (51>X,Y>3): ");
+		scanf("%s %s",&ip1,&ip2);
+		x = atoi(ip1);
+		y = atoi(ip2);
+		if(x<3 || x>51 || y<3 || y>51)
+		{
+			printf("\nInvalid screen size! Press any key to try again");
+			getch();
+			continue;
+		}	
+		SetWindowSize(x,y,_window);
+		break;
+	}
+	
 }
 
 int TickRateChange(int &_tickRate)
 {
 	int x;
-	system("cls");
-	printf("New tick rate (501>X>0): ");
-	scanf("%d",&x);
-	if(x<1 || x>500)
+	char ip[100];
+	while(1)
 	{
-		printf("\nInvalid tick rate! Press any key to try again");
-		getch();
-		return TickRateChange(_tickRate);
-	}	
-	_tickRate = x;
+		system("cls");
+		printf("New tick rate (501>X>0): ");
+		scanf("%s",&ip);
+		x = atoi(ip);
+		if(x<1 || x>500)
+		{
+			printf("\nInvalid tick rate! Press any key to try again");
+			getch();
+			continue;
+		}	
+		_tickRate = x;	
+		break;
+	}
+
 }
 
 typedef struct Player
@@ -322,7 +338,10 @@ void Input(bool &A_Quit, GameState &_gameState,Player *&_player,Block _block[][M
 							{
 								currentLevel++;
 								sprintf(_fileName,"Level File/Level%d.txt",currentLevel);
-								_gameState = Loading;
+								if(fopen(_fileName,"r")== NULL)
+									_gameState = Won;
+								else
+									_gameState = Loading;
 							}
 							break;
 						}
@@ -384,7 +403,10 @@ void Input(bool &A_Quit, GameState &_gameState,Player *&_player,Block _block[][M
 							{
 								currentLevel++;
 								sprintf(_fileName,"Level File/Level%d.txt",currentLevel);
-								_gameState = Loading;
+								if(fopen(_fileName,"r")== NULL)
+									_gameState = Won;
+								else
+									_gameState = Loading;
 							}
 							break;
 						}
@@ -446,7 +468,10 @@ void Input(bool &A_Quit, GameState &_gameState,Player *&_player,Block _block[][M
 							{
 								currentLevel++;
 								sprintf(_fileName,"Level File/Level%d.txt",currentLevel);
-								_gameState = Loading;
+								if(fopen(_fileName,"r")== NULL)
+									_gameState = Won;
+								else
+									_gameState = Loading;
 							}
 							break;
 						}
@@ -509,7 +534,10 @@ void Input(bool &A_Quit, GameState &_gameState,Player *&_player,Block _block[][M
 							{
 								currentLevel++;
 								sprintf(_fileName,"Level File/Level%d.txt",currentLevel);
-								_gameState = Loading;
+								if(fopen(_fileName,"r")== NULL)
+									_gameState = Won;
+								else
+									_gameState = Loading;
 							}
 							break;
 						}
@@ -551,9 +579,9 @@ void LoadGame(char _fileName[50],FILE *_fptr,Player *&_player,Block _blockArr[][
 	fscanf(_fptr,"%d",&currentLevel);
 	getc(_fptr);
 	//Read map
-	for(int i = 300;i>=0;i--)
+	for(int i = MAP_SIZE - 2;i>=0;i--)
 	{
-		for(int j = 0;j<=300;j++)
+		for(int j = 0;j<=MAP_SIZE - 2;j++)
 		{
 			_blockArr[i][j]._icon = getc(_fptr);
 			switch(_blockArr[i][j]._icon)
@@ -648,9 +676,9 @@ void SaveGame(Block _blockArr[][MAP_SIZE],FILE *_fptr,char _fileName[50],int _cu
 	fprintf(_fptr,"%s\n",_saveName);
 	fprintf(_fptr,"%d\n",_currentLevel);
 	//Print map
-	for(int i = 300;i>=0;i--)
+	for(int i = MAP_SIZE - 2;i>=0;i--)
 	{
-		for(int j = 0;j<=300;j++)
+		for(int j = 0;j<=MAP_SIZE - 2;j++)
 		{
 			fprintf(_fptr,"%c",_blockArr[i][j]._icon);
 		}
@@ -985,23 +1013,6 @@ void PauseMenuUI(GameState &_gameState,bool &A_Quit,Block _blockArr[][MAP_SIZE],
 							}
 						case 2:
 							{
-//								// if the file from the loading contains the keyword "Level" then we save the game to a new file else save with the current file name
-//								if(strstr(_fileName,"Level") != NULL)
-//								{
-//									int _fileCounter = 0;
-//									do
-//									{
-//										_fileCounter++;
-//										sprintf(_fileName,"Save%d.txt",_fileCounter);
-//										_fptr = fopen(_fileName,"r");
-//									}while(_fptr != NULL);
-//									//Save Game Menu
-//									SaveGame(_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved);
-//								}
-//								else
-//								{
-//									SaveGame(_blockArr,_fptr,_fileName,currentLevel,_tpCount,_tph,_player,_gameSaved);
-//								}
 								//Save Game screen
 								bool _localExit = false;
 								int currentIndex = 0;
@@ -1304,7 +1315,6 @@ void DrawGame(Window *_window,Block _block[][MAP_SIZE],Player *_player,int curre
 	//Debug
 	printf("\n Position: X %d, Y %d",(_player->_position)._x,(_player->_position)._y);
 	printf("\n Current level: %d", currentLevel);
-	printf("\n %d,g%c %cg",_atvCount,_block[6][5]._icon,_block[49][45]._icon);
 }
 void Logic()
 {
@@ -1376,10 +1386,10 @@ int main()
 				printf("	LOADING GAME\n");
 				LoadSettings(_tickRate,_window);
 				printf("/////////////");
-				Sleep(300);
+				Sleep(500);
 				LoadGame(_fileName,_fptr,_player,_blockArr,_tph,_tpCount, currentLevel,_gameSaved,_saveName,_atvCount,_atvPos);
 				printf("/////////////");
-				Sleep(300);
+				Sleep(500);
 				_gameState = Game;
 				break;	
 			}
@@ -1393,6 +1403,16 @@ int main()
 					//UpdateDelay
 					Sleep(_tickRate);
 				}while(_gameState==Game);
+				break;
+			}
+			case Won:
+			{
+				system("cls");
+				printf("YOU WIN!\n\n");
+				Sleep(1000);
+				printf("PRESS ANY KEY TO RETURN TO MENU");
+				getch();
+				_gameState = MainMenu;
 				break;
 			}
 			case Settings:

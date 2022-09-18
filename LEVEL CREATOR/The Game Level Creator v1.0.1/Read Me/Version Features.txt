@@ -2,4 +2,8 @@
 	+ Basic Editor finished
 - 12/06/2022 Version 1.0.1:
 	+ Added boundaries for the editor
-	+
+	+ Defined key values
+	+ Removed unessessary debuging
+	+ Removed Block's _position property
+	+ Removed recursion when input in new values when setting Tick Rate , Window Size and when Map creating
+	+ Fixed a bug where whenever the user input a string for an integer value the application freeze 

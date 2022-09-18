@@ -1,6 +1,9 @@
-*****This Current version of LEVER CREATOR is made for v1.x.x of THE GAME*****
+*****This Current version of LEVEL CREATOR is made for version 1.x.x of THE GAME*****
 
-I. Basic User Interface
+I. Foreword
+	- This application - THE GAME LEVEL CREATOR(TGLC) , is a level editor for THE GAME (TG) was made by a freshman at the University of transport and communication (UTC)
+
+II. Basic User Interface
 	1. Main Menu
 	2. Load Menu
 	3. Loading Screen
@@ -8,6 +11,6 @@ I. Basic User Interface
 	5. Pause Menu
 	6. Settings Menu
 	7. Save Menu
-II. Using the Editor
+III. Using the Editor
 	1. Block types
 	2. Editor Keys
